@@ -1,20 +1,49 @@
 'use client';
 
+import React, { useState } from 'react';
+
 interface HabitCardProps {
+    id: string;
     name: string;
     identityTag: string;
     streak: number;
     weeklyProgress: number; // 0 to 100
-    onComplete: () => void;
+    isCompletedToday: boolean;
+    onUpdate: () => void;
 }
 
 export default function HabitCard({
+    id,
     name,
     identityTag,
     streak,
     weeklyProgress,
-    onComplete,
+    isCompletedToday,
+    onUpdate,
 }: HabitCardProps) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleComplete = async () => {
+        if (isCompletedToday || isSubmitting) return;
+
+        setIsSubmitting(true);
+        try {
+            const response = await fetch(`/api/habits/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                onUpdate();
+            }
+        } catch (error) {
+            console.error('Failed to mark habit as complete:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
     const radius = 18;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (weeklyProgress / 100) * circumference;
@@ -76,10 +105,28 @@ export default function HabitCard({
 
             <div className="mt-5 flex gap-2">
                 <button
-                    onClick={onComplete}
-                    className="flex-1 bg-lime-400 hover:bg-lime-500 text-zinc-950 font-bold py-3 rounded-2xl transition-all active:scale-[0.98] shadow-sm"
+                    onClick={handleComplete}
+                    disabled={isCompletedToday || isSubmitting}
+                    className={`flex-1 flex items-center justify-center gap-2 font-bold py-3 rounded-2xl transition-all active:scale-[0.98] shadow-sm ${isCompletedToday
+                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-default'
+                            : 'bg-lime-400 hover:bg-lime-500 text-zinc-950'
+                        }`}
                 >
-                    Mark Done
+                    {isSubmitting ? (
+                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    ) : isCompletedToday ? (
+                        <>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            Done Today
+                        </>
+                    ) : (
+                        'Mark Done'
+                    )}
                 </button>
                 <button className="p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
