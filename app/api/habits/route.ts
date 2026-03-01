@@ -11,10 +11,11 @@ export async function GET() {
         await connectDB();
         const habits = await Habit.find({}).sort({ createdAt: -1 });
         return NextResponse.json(habits);
-    } catch (error: any) {
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
         console.error('GET /api/habits error:', error);
         return NextResponse.json(
-            { error: error.message || 'Internal Server Error' },
+            { error: message },
             { status: 500 }
         );
     }
@@ -40,10 +41,11 @@ export async function POST(req: Request) {
         const habit = await Habit.create(body);
 
         return NextResponse.json(habit, { status: 201 });
-    } catch (error: any) {
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
         console.error('POST /api/habits error:', error);
         return NextResponse.json(
-            { error: error.message || 'Internal Server Error' },
+            { error: message },
             { status: 500 }
         );
     }
