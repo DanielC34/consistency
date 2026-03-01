@@ -1,8 +1,13 @@
 'use client';
 
-export default function FloatingActionButton() {
+interface FloatingActionButtonProps {
+    onClick: () => void;
+}
+
+export default function FloatingActionButton({ onClick }: FloatingActionButtonProps) {
     return (
         <button
+            onClick={onClick}
             className="fixed bottom-24 right-6 w-16 h-16 bg-lime-400 hover:bg-lime-500 text-zinc-950 rounded-full shadow-xl shadow-lime-300/40 dark:shadow-none flex items-center justify-center transition-all active:scale-95 z-40"
             aria-label="Add habit"
         >
