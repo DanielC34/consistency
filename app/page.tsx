@@ -34,6 +34,15 @@ export default function Home() {
     fetchHabits();
   }, []);
 
+  const getStartOfWeek = (date: Date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    const start = new Date(d.setDate(diff));
+    start.setHours(0, 0, 0, 0);
+    return start;
+  };
+
   const calculateStreak = (logs: { date: string; completed: boolean }[] = []) => {
     if (!logs.length) return 0;
 
@@ -76,30 +85,45 @@ export default function Home() {
   const calculateWeeklyProgress = (logs: { date: string; completed: boolean }[] = [], target: number) => {
     if (!logs.length || target === 0) return 0;
 
-    // Get dates for the current week (Sunday to Saturday)
-    const now = new Date();
-    const dayOfWeek = now.getDay(); // 0 is Sunday
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - dayOfWeek);
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-
+    const startOfWeek = getStartOfWeek(new Date());
     const weekStartStr = startOfWeek.toISOString().split('T')[0];
-    const weekEndStr = endOfWeek.toISOString().split('T')[0];
 
     const completionsThisWeek = logs.filter(log =>
-      log.completed && log.date >= weekStartStr && log.date <= weekEndStr
+      log.completed && log.date >= weekStartStr
     ).length;
 
     return Math.min(100, Math.round((completionsThisWeek / target) * 100));
   };
 
+  const calculateGlobalMomentum = (habits: IHabit[]) => {
+    if (!habits.length) return { percentage: 0, daysToGoal: 0 };
+
+    const startOfWeek = getStartOfWeek(new Date());
+    const weekStartStr = startOfWeek.toISOString().split('T')[0];
+
+    let totalCompletions = 0;
+    let totalTarget = 0;
+
+    habits.forEach(habit => {
+      const completions = habit.logs?.filter(log =>
+        log.completed && log.date >= weekStartStr
+      ).length || 0;
+
+      totalCompletions += completions;
+      totalTarget += habit.targetPerWeek;
+    });
+
+    const percentage = totalTarget > 0 ? Math.round((totalCompletions / totalTarget) * 100) : 0;
+    const daysToGoal = Math.max(0, totalTarget - totalCompletions);
+
+    return { percentage, daysToGoal };
+  };
+
+  const { percentage: momentumScore, daysToGoal } = calculateGlobalMomentum(habits);
+
   return (
     <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      <MomentumCard />
+      <MomentumCard percentage={momentumScore} daysToGoal={daysToGoal} />
 
       <section className="flex flex-col gap-6 mb-8">
         <div className="flex justify-between items-end">
