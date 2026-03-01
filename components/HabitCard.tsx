@@ -1,0 +1,92 @@
+'use client';
+
+interface HabitCardProps {
+    name: string;
+    identityTag: string;
+    streak: number;
+    weeklyProgress: number; // 0 to 100
+    onComplete: () => void;
+}
+
+export default function HabitCard({
+    name,
+    identityTag,
+    streak,
+    weeklyProgress,
+    onComplete,
+}: HabitCardProps) {
+    const radius = 18;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (weeklyProgress / 100) * circumference;
+
+    return (
+        <div className="group relative w-full bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all duration-300 mb-4">
+            <div className="flex justify-between items-start">
+                <div className="space-y-2">
+                    {/* Identity Tag */}
+                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">
+                        {identityTag.toUpperCase()}
+                    </span>
+
+                    <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">
+                        {name}
+                    </h3>
+
+                    {/* Streak */}
+                    <div className="flex items-center gap-1.5 bg-orange-50 dark:bg-orange-950/20 w-fit px-2 py-1 rounded-lg">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500 fill-orange-500">
+                            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+                        </svg>
+                        <span className="text-xs font-bold text-orange-600 dark:text-orange-400">
+                            {streak} day streak
+                        </span>
+                    </div>
+                </div>
+
+                {/* Circular Progress */}
+                <div className="relative flex items-center justify-center h-14 w-14">
+                    <svg className="h-full w-full -rotate-90">
+                        <circle
+                            cx="28"
+                            cy="28"
+                            r={radius}
+                            stroke="currentColor"
+                            strokeWidth="3.5"
+                            fill="transparent"
+                            className="text-zinc-100 dark:text-zinc-800"
+                        />
+                        <circle
+                            cx="28"
+                            cy="28"
+                            r={radius}
+                            stroke="currentColor"
+                            strokeWidth="3.5"
+                            fill="transparent"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={offset}
+                            strokeLinecap="round"
+                            className="text-lime-500 transition-all duration-700 ease-in-out"
+                        />
+                    </svg>
+                    <div className="absolute flex flex-col items-center">
+                        <span className="text-[10px] font-bold text-zinc-900 dark:text-zinc-50">{weeklyProgress}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-5 flex gap-2">
+                <button
+                    onClick={onComplete}
+                    className="flex-1 bg-lime-400 hover:bg-lime-500 text-zinc-950 font-bold py-3 rounded-2xl transition-all active:scale-[0.98] shadow-sm"
+                >
+                    Mark Done
+                </button>
+                <button className="p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                        <circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    );
+}
