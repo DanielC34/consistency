@@ -44,10 +44,6 @@ export default function HabitCard({
             setIsSubmitting(false);
         }
     };
-    const radius = 18;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (weeklyProgress / 100) * circumference;
-
     return (
         <div className="group relative w-full bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all duration-300 mb-4">
             <div className="flex justify-between items-start">
@@ -72,33 +68,17 @@ export default function HabitCard({
                     </div>
                 </div>
 
-                {/* Circular Progress */}
-                <div className="relative flex items-center justify-center h-14 w-14">
-                    <svg className="h-full w-full -rotate-90">
-                        <circle
-                            cx="28"
-                            cy="28"
-                            r={radius}
-                            stroke="currentColor"
-                            strokeWidth="3.5"
-                            fill="transparent"
-                            className="text-zinc-100 dark:text-zinc-800"
-                        />
-                        <circle
-                            cx="28"
-                            cy="28"
-                            r={radius}
-                            stroke="currentColor"
-                            strokeWidth="3.5"
-                            fill="transparent"
-                            strokeDasharray={circumference}
-                            strokeDashoffset={offset}
-                            strokeLinecap="round"
-                            className="text-lime-500 transition-all duration-700 ease-in-out"
-                        />
-                    </svg>
-                    <div className="absolute flex flex-col items-center">
-                        <span className="text-[10px] font-bold text-zinc-900 dark:text-zinc-50">{weeklyProgress}%</span>
+                {/* Circular Progress (conic-gradient) */}
+                <div
+                    className="relative flex items-center justify-center h-16 w-16 rounded-full bg-zinc-100 dark:bg-zinc-800 transition-all duration-1000 ease-in-out"
+                    style={{
+                        background: `conic-gradient(#a3e635 ${weeklyProgress}%, transparent 0)`,
+                        backgroundColor: 'color-mix(in srgb, currentColor 10%, transparent)'
+                    }}
+                >
+                    {/* Inner circle to create doughnut effect */}
+                    <div className="absolute inset-1 bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center">
+                        <span className="text-[11px] font-black text-zinc-900 dark:text-zinc-50">{weeklyProgress}%</span>
                     </div>
                 </div>
             </div>
@@ -108,8 +88,8 @@ export default function HabitCard({
                     onClick={handleComplete}
                     disabled={isCompletedToday || isSubmitting}
                     className={`flex-1 flex items-center justify-center gap-2 font-bold py-3 rounded-2xl transition-all active:scale-[0.98] shadow-sm ${isCompletedToday
-                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-default'
-                            : 'bg-lime-400 hover:bg-lime-500 text-zinc-950'
+                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-default'
+                        : 'bg-lime-400 hover:bg-lime-500 text-zinc-950'
                         }`}
                 >
                     {isSubmitting ? (
