@@ -5,6 +5,7 @@ export interface IHabit {
     targetPerWeek: number;
     streak?: number;
     weeklyProgress?: number;
+    weeklyBreakdown?: boolean[];
     logs?: { date: string; completed: boolean }[];
-    createdAt?: string;
+    createdAt?: Date;
 }

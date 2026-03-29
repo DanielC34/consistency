@@ -7,6 +7,7 @@ import ActivityChart from "@/components/ActivityChart";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import AddHabitModal from "@/components/AddHabitModal";
 import { IHabit } from '@/types/habit';
+import { getLocalDayString, getStartOfSundayWeek } from '@/features/habits/utils/date-utils';
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,92 +35,83 @@ export default function Home() {
     fetchHabits();
   }, []);
 
-  const getStartOfWeek = (date: Date) => {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-    const start = new Date(d.setDate(diff));
-    start.setHours(0, 0, 0, 0);
-    return start;
-  };
+  // Memoize date calculations to ensure consistency across all sub-components and loops
+  const startOfWeek = getStartOfSundayWeek();
+  const weekStartStr = getLocalDayString(startOfWeek);
+  const today = getLocalDayString();
 
   const calculateStreak = (logs: { date: string; completed: boolean }[] = []) => {
     if (!logs.length) return 0;
-
-    // Sort logs by date descending
     const sortedLogs = [...logs].sort((a, b) => b.date.localeCompare(a.date));
-
-    const today = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterday = getLocalDayString(yesterdayDate);
 
     let streak = 0;
     let expectedDate = today;
 
-    // If today is not in logs and yesterday is not in logs, streak is 0
     const hasToday = sortedLogs.some(l => l.date === today && l.completed);
     const hasYesterday = sortedLogs.some(l => l.date === yesterday && l.completed);
 
     if (!hasToday && !hasYesterday) return 0;
-
-    // Start from today if it exists, otherwise start from yesterday
-    if (!hasToday) {
-      expectedDate = yesterday;
-    }
+    if (!hasToday) expectedDate = yesterday;
 
     for (const log of sortedLogs) {
       if (log.date === expectedDate && log.completed) {
         streak++;
-        // Move expected date back by 1 day
         const d = new Date(expectedDate);
         d.setDate(d.getDate() - 1);
-        expectedDate = d.toISOString().split('T')[0];
+        expectedDate = getLocalDayString(d);
       } else if (log.date < expectedDate) {
-        // Gap found
         break;
       }
     }
-
     return streak;
   };
 
   const calculateWeeklyProgress = (logs: { date: string; completed: boolean }[] = [], target: number) => {
     if (!logs.length || target === 0) return 0;
-
-    const startOfWeek = getStartOfWeek(new Date());
-    const weekStartStr = startOfWeek.toISOString().split('T')[0];
-
-    const completionsThisWeek = logs.filter(log =>
-      log.completed && log.date >= weekStartStr
-    ).length;
-
+    const completionsThisWeek = logs.filter(log => log.completed && log.date >= weekStartStr).length;
     return Math.min(100, Math.round((completionsThisWeek / target) * 100));
   };
 
   const calculateGlobalMomentum = (habits: IHabit[]) => {
     if (!habits.length) return { percentage: 0, daysToGoal: 0 };
-
-    const startOfWeek = getStartOfWeek(new Date());
-    const weekStartStr = startOfWeek.toISOString().split('T')[0];
-
     let totalCompletions = 0;
     let totalTarget = 0;
 
     habits.forEach(habit => {
-      const completions = habit.logs?.filter(log =>
-        log.completed && log.date >= weekStartStr
-      ).length || 0;
-
+      const completions = habit.logs?.filter(log => log.completed && log.date >= weekStartStr).length || 0;
       totalCompletions += completions;
       totalTarget += habit.targetPerWeek;
     });
 
     const percentage = totalTarget > 0 ? Math.round((totalCompletions / totalTarget) * 100) : 0;
     const daysToGoal = Math.max(0, totalTarget - totalCompletions);
-
     return { percentage, daysToGoal };
   };
 
+  const calculateDailyActivity = (habits: IHabit[]) => {
+    const activity = Array(7).fill(0);
+    habits.forEach(habit => {
+      habit.logs?.forEach(log => {
+        if (!log.completed) return;
+        for (let i = 0; i < 7; i++) {
+          const checkDate = new Date(startOfWeek);
+          checkDate.setDate(startOfWeek.getDate() + i);
+          if (log.date === getLocalDayString(checkDate)) {
+            activity[i]++;
+            break;
+          }
+        }
+      });
+    });
+    return activity;
+  };
+
   const { percentage: momentumScore, daysToGoal } = calculateGlobalMomentum(habits);
+  const dailyActivity = calculateDailyActivity(habits);
 
   return (
     <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -156,7 +148,8 @@ export default function Home() {
             </div>
           ) : (
             habits.map((habit) => {
-              const today = new Date().toISOString().split('T')[0];
+              const today = getLocalDayString();
+              console.log('[Audit] Frontend Today:', today, 'Current Time:', new Date().toLocaleString());
               const isCompletedToday = habit.logs?.some(l => l.date === today && l.completed) || false;
               const streak = calculateStreak(habit.logs);
               const weeklyProgress = calculateWeeklyProgress(habit.logs, habit.targetPerWeek);
@@ -170,6 +163,7 @@ export default function Home() {
                   streak={streak}
                   weeklyProgress={weeklyProgress}
                   isCompletedToday={isCompletedToday}
+                  weeklyBreakdown={habit.weeklyBreakdown}
                   onUpdate={fetchHabits}
                 />
               );
@@ -178,7 +172,7 @@ export default function Home() {
         </div>
       </section>
 
-      <ActivityChart />
+      <ActivityChart activityData={dailyActivity} />
 
       <FloatingActionButton onClick={() => setIsModalOpen(true)} />
 

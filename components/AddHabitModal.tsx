@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { habitTemplates } from '@/features/habits/utils/templates';
 
 interface AddHabitModalProps {
     isOpen: boolean;
@@ -16,6 +17,15 @@ export default function AddHabitModal({ isOpen, onClose, onHabitCreated }: AddHa
     const [error, setError] = useState<string | null>(null);
 
     if (!isOpen) return null;
+
+    const handleTemplateSelect = (templateName: string) => {
+        const template = habitTemplates.find(t => t.name === templateName);
+        if (template) {
+            setName(template.name);
+            setIdentity(template.identityTag);
+            setTarget(template.weeklyTarget);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -80,6 +90,29 @@ export default function AddHabitModal({ isOpen, onClose, onHabitCreated }: AddHa
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Template Selector */}
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 px-1">
+                            Quick Templates
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {habitTemplates.map((template) => (
+                                <button
+                                    key={template.name}
+                                    type="button"
+                                    onClick={() => handleTemplateSelect(template.name)}
+                                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
+                                        name === template.name
+                                            ? 'bg-lime-400 border-lime-400 text-zinc-950'
+                                            : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-700'
+                                    }`}
+                                >
+                                    {template.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
                         <label htmlFor="habit-name" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 px-1">
                             Habit Name
@@ -105,7 +138,7 @@ export default function AddHabitModal({ isOpen, onClose, onHabitCreated }: AddHa
                             onChange={(e) => setIdentity(e.target.value)}
                             className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-lime-500 appearance-none transition-all"
                         >
-                            {['Athlete', 'Builder', 'Reader', 'Creator', 'Spiritual'].map((tag) => (
+                            {['Athlete', 'Builder', 'Reader', 'Creator', 'Spiritual', 'Mindful', 'Learner'].map((tag) => (
                                 <option key={tag} value={tag}>{tag}</option>
                             ))}
                         </select>
