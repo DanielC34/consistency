@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import MomentumCard from "@/components/MomentumCard";
-import HabitCard from "@/components/HabitCard";
+import HabitCard from "@/features/habits/components/HabitCard";
 import ActivityChart from "@/components/ActivityChart";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import AddHabitModal from "@/components/AddHabitModal";
