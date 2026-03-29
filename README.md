@@ -69,10 +69,19 @@ The app will be available at `http://localhost:3080`.
 │   ├── api/              # Backend route handlers
 │   ├── layout.tsx        # Root layout with ThemeProvider
 │   └── page.tsx          # Main Dashboard
-├── components/           # Reusable UI components
-│   ├── HabitCard.tsx     # Individual habit visualization
-│   ├── MomentumCard.tsx  # Global progress summary
-│   └── AddHabitModal.tsx # Habit creation form
+├── features/             # Feature-based modules
+│   ├── habits/           # Habit tracking feature
+│   │   ├── components/   # Habit components (e.g., HabitCard)
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   ├── types/
+│   │   └── utils/
+│   ├── momentum/         # Momentum feature
+│   └── auth/             # Auth feature
+├── components/           # Shared components
+│   ├── ui/               # Reusable primitive UI
+│   ├── layout/           # Global layout elements
+│   └── ThemeProvider.tsx
 ├── lib/                  # Server-side utilities
 │   ├── db.ts             # MongoDB connection logic
 │   └── models/           # Mongoose schemas
